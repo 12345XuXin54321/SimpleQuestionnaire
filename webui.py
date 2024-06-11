@@ -156,6 +156,52 @@ class ViewQuestionnairePage(base_gui.WindowVBox):
         self.open_weight(cp)
 
 
+class ReplyQuestionPage(base_gui.WindowVBox):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.ok_button = gui.Button("确认提交")
+        self.ok_button.onclick.do(self.submit_data)
+        self.ans_text_list = []
+        self.add_item(self.ok_button)
+
+    def update_data(self):
+        for i in range(10):
+            hb = gui.HBox()
+
+            ques_lab = gui.Label("ques " + str(i))
+            text_input = gui.TextInput()
+            self.ans_text_list.append(text_input)
+
+            hb.append(ques_lab)
+            hb.append(text_input)
+
+            self.add_item(hb)
+
+    def submit_data(self, w):
+        ans_last = []
+        for ti in self.ans_text_list:
+            ans_last.append(ti.text)
+        print(ans_last)
+
+
+class FillOutQuestionnairePage(base_gui.WindowVBox):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        lab = gui.Label("填写问卷标识符")
+        self.text_input = gui.TextInput()
+        button = gui.Button("开始填写")
+        button.onclick.do(self.onstartFIllOut)
+        self.add_item(lab)
+        self.add_item(self.text_input)
+        self.add_item(button)
+
+    def onstartFIllOut(self, w):
+        rqp = ReplyQuestionPage(self)
+        rqp.update_data()
+        self.open_weight(rqp)
+
+
 class LoginPage(gui.HBox):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -193,7 +239,7 @@ class MyApp(App):
         self.container.open_weight(ViewQuestionnairePage(self.container))
 
     def write_ques_fn(self, weight):
-        pass
+        self.container.open_weight(FillOutQuestionnairePage(self.container))
 
 
 def run_webui():
