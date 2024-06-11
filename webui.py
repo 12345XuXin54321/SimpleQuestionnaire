@@ -97,6 +97,36 @@ class QuestionnaireList(gui.VBox):
         self.choose_func = func
 
 
+class CreateQuestionnairePage(base_gui.WindowVBox):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        release_ques = gui.Button("发布问卷")
+        release_ques.onclick.do(self.rele_ques_func)
+        add_ques = gui.Button("添加问题")
+        add_ques.onclick.do(self.add_ques_func)
+
+        self.control_hbox = gui.HBox(style='width: 320px')
+        self.control_hbox.append(add_ques)
+        self.control_hbox.append(release_ques)
+        self.control_hbox.style['justify-content'] = 'space-around'
+
+        self.ques_input_list = []
+
+        self.add_item(self.control_hbox)
+
+    def add_ques_func(self, w):
+        ques_input = gui.TextInput()
+        self.ques_input_list.append(ques_input)
+        self.append(ques_input)
+
+    def rele_ques_func(self, w):
+        ques_list = []
+        for s in self.ques_input_list:
+            ques_list.append(s.text)
+        print(ques_list)
+
+
 class ViewQuestionnairePage(base_gui.WindowVBox):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -122,7 +152,8 @@ class ViewQuestionnairePage(base_gui.WindowVBox):
         self.open_weight(rp)
 
     def on_create_ques(self, w):
-        print("create")
+        cp = CreateQuestionnairePage(self)
+        self.open_weight(cp)
 
 
 class LoginPage(gui.HBox):
