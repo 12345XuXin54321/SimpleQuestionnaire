@@ -21,6 +21,16 @@ class ChoosePage(gui.VBox):
         self.questionnaire_write.onclick.do(ques_write_func)
 
 
+class AnswerInfo(base_gui.WindowVBox):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def get_data(self):
+        for i in range(10):
+            dli = gui.Label("data is " + str(i * i))
+            self.append(dli)
+
+
 class ReplyList(gui.VBox):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -36,8 +46,12 @@ class ReplyList(gui.VBox):
         self.rep_list.append(qi)
         self.append(qi)
 
+    def set_choose_func(self, choose_func):
+        self.choose_fn = choose_func
+
     def on_rep_choose(self, weight: base_gui.ChoosableItem):
         print(weight.name.text)
+        self.choose_fn(weight)
 
 
 class ViewReplyPage(base_gui.WindowVBox):
@@ -47,6 +61,7 @@ class ViewReplyPage(base_gui.WindowVBox):
         self.user = ''
 
         self.ques_naire_list = ReplyList()
+        self.ques_naire_list.set_choose_func(self.on_view_ans)
         for i in range(5):
             self.ques_naire_list.add_rep("name: " + str(i))
         self.add_item(self.ques_naire_list)
@@ -54,8 +69,10 @@ class ViewReplyPage(base_gui.WindowVBox):
     def set_user(self, usr):
         self.user = usr
 
-    def on_create_ques(self, weight):
-        pass
+    def on_view_ans(self, weight):
+        ai = AnswerInfo(self)
+        ai.get_data()
+        self.open_weight(ai)
 
 
 class QuestionnaireList(gui.VBox):
