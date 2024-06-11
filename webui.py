@@ -156,16 +156,13 @@ class MyApp(App):
         self.choose_page.set_func(self.view_ques_fn, self.write_ques_fn)
         self.container.add_item(self.choose_page)
 
-        self.view_ques_page = ViewQuestionnairePage(self.container)
-
         return self.container
 
     def view_ques_fn(self, weight):
-        self.container.open_weight(self.view_ques_page)
+        self.container.open_weight(ViewQuestionnairePage(self.container))
 
     def write_ques_fn(self, weight):
-        self.container.remove_child(self.choose_page)
-        print("bbb")
+        pass
 
 
 def run_webui():
