@@ -31,6 +31,16 @@ class AnswerInfo(base_gui.WindowVBox):
             self.append(dli)
 
 
+class QuestionnaireInfo(base_gui.WindowVBox):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def get_data(self):
+        for i in range(10):
+            dli = gui.Label("quse is " + str(i * i))
+            self.append(dli)
+
+
 class ReplyList(gui.VBox):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -60,6 +70,10 @@ class ViewReplyPage(base_gui.WindowVBox):
 
         self.user = ''
 
+        view_ques = gui.Button("查看问题")
+        view_ques.onclick.do(self.on_view_ques)
+        self.add_item(view_ques)
+
         self.ques_naire_list = ReplyList()
         self.ques_naire_list.set_choose_func(self.on_view_ans)
         for i in range(5):
@@ -73,6 +87,11 @@ class ViewReplyPage(base_gui.WindowVBox):
         ai = AnswerInfo(self)
         ai.get_data()
         self.open_weight(ai)
+
+    def on_view_ques(self, w):
+        qi = QuestionnaireInfo(self)
+        qi.get_data()
+        self.open_weight(qi)
 
 
 class QuestionnaireList(gui.VBox):
