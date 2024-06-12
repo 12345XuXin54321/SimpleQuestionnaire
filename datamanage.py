@@ -69,9 +69,11 @@ class DataManage():
         print(db_data)
         return db_data
 
-    def get_data(self, tab_name, select_data, condition):
-        sql = "select " + select_data + " from " + \
-            tab_name + " where " + condition + ";"
+    def get_data(self, tab_name, select_data, condition=None):
+        sql = "select " + select_data + " from " + tab_name
+        if condition != None:
+            sql = sql + " where " + condition
+        sql = sql + ";"
         return self.execute_sql(sql)
 
     def insert_data(self, tab_name, db_data: list):
