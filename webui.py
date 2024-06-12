@@ -28,9 +28,9 @@ class AnswerInfo(base_gui.WindowVBox):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def get_data(self):
+    def get_data(self, respondents_ind):
         for i in range(10):
-            dli = gui.Label("data is " + str(i * i))
+            dli = gui.Label(str(respondents_ind) + "data is " + str(i * i))
             self.append(dli)
 
 
@@ -38,9 +38,15 @@ class QuestionnaireInfo(base_gui.WindowVBox):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def get_data(self):
-        for i in range(10):
-            dli = gui.Label("quse is " + str(i * i))
+    def get_data(self, naire_ind):
+        prob_list = gl_data_manage.get_data(
+            "questionnaire_data_tab", "ques_ind, ind", "naire_ind = " + str(naire_ind))
+        for i in prob_list:
+            ques_ind, ind = i
+            ques_content = gl_data_manage.get_data(
+                "question_tab", "content", "ind = " + str(ques_ind))
+            ques_content = list(ques_content[0])[0]
+            dli = gui.Label("第{}题 ".format(ind) + ques_content)
             self.append(dli)
 
 
@@ -53,9 +59,9 @@ class ReplyList(gui.VBox):
 
         self.rep_list = []
 
-    def add_rep(self, name):
+    def add_rep(self, name, ind):
         qi = base_gui.ChoosableItem()
-        qi.set_data(name, self.on_rep_choose)
+        qi.set_data(name, self.on_rep_choose, ind)
         self.rep_list.append(qi)
         self.append(qi)
 
@@ -79,21 +85,29 @@ class ViewReplyPage(base_gui.WindowVBox):
 
         self.ques_naire_list = ReplyList()
         self.ques_naire_list.set_choose_func(self.on_view_ans)
-        for i in range(5):
-            self.ques_naire_list.add_rep("name: " + str(i))
         self.add_item(self.ques_naire_list)
+
+    def update_data(self):
+        res_list = gl_data_manage.get_data(
+            "questionnaire_fillout_tab", "respondents_ind", "naire_ind = " + str(self.naire_ind))
+        for i in res_list:
+            resp_ind = list(i)[0]
+            self.ques_naire_list.add_rep("name: " + str(resp_ind), resp_ind)
 
     def set_user(self, usr):
         self.user = usr
 
+    def set_naire_ind(self, ind):
+        self.naire_ind = ind
+
     def on_view_ans(self, weight):
         ai = AnswerInfo(self)
-        ai.get_data()
+        ai.get_data(weight.other_ind)
         self.open_weight(ai)
 
     def on_view_ques(self, w):
         qi = QuestionnaireInfo(self)
-        qi.get_data()
+        qi.get_data(self.naire_ind)
         self.open_weight(qi)
 
 
@@ -105,9 +119,9 @@ class QuestionnaireList(gui.VBox):
 
         self.ques_list = []
 
-    def add_ques(self, name):
+    def add_ques(self, name, ind):
         qi = base_gui.ChoosableItem()
-        qi.set_data(name, self.on_ques_choose)
+        qi.set_data(name, self.on_ques_choose, ind)
         self.ques_list.append(qi)
         self.append(qi)
 
@@ -190,7 +204,7 @@ class ViewQuestionnairePage(base_gui.WindowVBox):
             ind = d_pk[0]
             title = d_pk[1]
 
-            self.ques_naire_list.add_ques(title)
+            self.ques_naire_list.add_ques(title, ind)
         self.add_item(self.ques_naire_list)
 
         self.create_ques = gui.Button("创建问卷")
@@ -203,6 +217,9 @@ class ViewQuestionnairePage(base_gui.WindowVBox):
     def on_view_ques(self, w):
         print("c1 ", w.name.text)
         rp = ViewReplyPage(self)
+        rp.set_user(self.user)
+        rp.set_naire_ind(w.other_data)
+        rp.update_data()
         self.open_weight(rp)
 
     def on_create_ques(self, w):

@@ -58,7 +58,8 @@ class ChoosableItem(gui.HBox):
     def call_back_func(self, weight):
         self.cb_func(self)
 
-    def set_data(self, name, func):
+    def set_data(self, name, func, other_data=None):
         self.name.set_text(name)
         self.view.onclick.do(self.call_back_func)
         self.cb_func = func
+        self.other_data = other_data
