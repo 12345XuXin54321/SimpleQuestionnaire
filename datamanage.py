@@ -85,8 +85,8 @@ class DataManage():
 
         self.execute_sql(sql)
 
-    def db_len(self, tab_name):
-        t_count = self.get_data(tab_name, "count(*)", "1=1")
+    def db_len(self, tab_name, condition=None):
+        t_count = self.get_data(tab_name, "count(*)", condition)
         t_count = list(t_count[0])
         t_count = t_count[0]
         return t_count
