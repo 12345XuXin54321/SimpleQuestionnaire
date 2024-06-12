@@ -29,8 +29,14 @@ class AnswerInfo(base_gui.WindowVBox):
         super().__init__(*args, **kwargs)
 
     def get_data(self, respondents_ind):
-        for i in range(10):
-            dli = gui.Label(str(respondents_ind) + "data is " + str(i * i))
+        resp_list = gl_data_manage.get_data(
+            "respondents_data_tab", "answer_ind, ind", "respondents_ind = " + str(respondents_ind))
+        for i in resp_list:
+            answer_ind, ind = i
+            resp_content = gl_data_manage.get_data(
+                "answer_tab", "content", "ind = " + str(answer_ind))
+            resp_content = list(resp_content[0])[0]
+            dli = gui.Label("第{}题的回答 ".format(ind) + resp_content)
             self.append(dli)
 
 
@@ -102,7 +108,7 @@ class ViewReplyPage(base_gui.WindowVBox):
 
     def on_view_ans(self, weight):
         ai = AnswerInfo(self)
-        ai.get_data(weight.other_ind)
+        ai.get_data(weight.other_data)
         self.open_weight(ai)
 
     def on_view_ques(self, w):
@@ -236,11 +242,21 @@ class ReplyQuestionPage(base_gui.WindowVBox):
         self.ans_text_list = []
         self.add_item(self.ok_button)
 
-    def update_data(self):
-        for i in range(10):
+    def update_data(self, naire_ind, user_ind):
+        self.user_id = user_ind
+        self.naire_ind = naire_ind
+        prob_list = gl_data_manage.get_data(
+            "questionnaire_data_tab", "ques_ind", "naire_ind = " + str(naire_ind))
+        prob_len = len(prob_list)
+
+        for i in range(prob_len):
             hb = gui.HBox()
 
-            ques_lab = gui.Label("ques " + str(i))
+            prob_ind = list(prob_list[i])[0]
+            prob_text = gl_data_manage.get_data(
+                "question_tab", "content", "ind = " + str(prob_ind))
+            prob_text = list(prob_text[0])[0]
+            ques_lab = gui.Label("问题" + str(i) + " " + prob_text)
             text_input = gui.TextInput()
             self.ans_text_list.append(text_input)
 
@@ -253,7 +269,21 @@ class ReplyQuestionPage(base_gui.WindowVBox):
         ans_last = []
         for ti in self.ans_text_list:
             ans_last.append(ti.text)
-        print(ans_last)
+
+        resp_ind = gl_data_manage.db_len("respondents_tab")
+        ans_len = gl_data_manage.db_len("answer_tab")
+
+        gl_data_manage.insert_data("reply_questionnaire_tab", [
+                                   self.user_id, resp_ind])
+        gl_data_manage.insert_data("respondents_tab", [resp_ind])
+        gl_data_manage.insert_data("questionnaire_fillout_tab", [
+                                   resp_ind, self.naire_ind])
+
+        for i in range(len(ans_last)):
+            gl_data_manage.insert_data(
+                "answer_tab", [ans_len + i, ans_last[i]])
+            gl_data_manage.insert_data("respondents_data_tab", [
+                                       resp_ind, ans_len + i, i])
 
 
 class FillOutQuestionnairePage(base_gui.WindowVBox):
@@ -268,9 +298,12 @@ class FillOutQuestionnairePage(base_gui.WindowVBox):
         self.add_item(self.text_input)
         self.add_item(button)
 
+    def set_userid(self, userid):
+        self.user_ind = userid
+
     def onstartFIllOut(self, w):
         rqp = ReplyQuestionPage(self)
-        rqp.update_data()
+        rqp.update_data(int(self.text_input.text), self.user_ind)
         self.open_weight(rqp)
 
 
@@ -330,7 +363,9 @@ class MyApp(App):
         self.container.open_weight(vpq)
 
     def write_ques_fn(self, weight):
-        self.container.open_weight(FillOutQuestionnairePage(self.container))
+        foqp = FillOutQuestionnairePage(self.container)
+        foqp.set_userid(self.login_data.get_userid())
+        self.container.open_weight(foqp)
 
 
 def run_webui():
