@@ -1,6 +1,9 @@
 import remi.gui as gui
 from remi import start, App
 import base_gui
+import datamanage
+
+gl_data_manage = datamanage.DataManage()
 
 
 class ChoosePage(gui.VBox):
@@ -139,11 +142,31 @@ class CreateQuestionnairePage(base_gui.WindowVBox):
         self.ques_input_list.append(ques_input)
         self.append(ques_input)
 
+    def set_userid(self, user_id):
+        self.userid = user_id
+
     def rele_ques_func(self, w):
         ques_list = []
         for s in self.ques_input_list:
             ques_list.append(s.text)
         print(ques_list)
+
+        ques_count = gl_data_manage.db_len("question_tab")
+        questionnaire_count = gl_data_manage.db_len("questionnaire_tab")
+
+        for i in range(len(ques_list)):
+            gl_data_manage.insert_data(
+                "question_tab", [i + ques_count, ques_list[i]])
+
+        gl_data_manage.insert_data("questionnaire_tab", [
+                                   questionnaire_count, "title_" + str(questionnaire_count)])
+
+        for i in range(len(ques_list)):
+            gl_data_manage.insert_data("questionnaire_data_tab", [
+                                       i + ques_count, questionnaire_count, i])
+
+        gl_data_manage.insert_data("create_questionnaire_tab", [
+                                   self.userid, questionnaire_count])
 
 
 class ViewQuestionnairePage(base_gui.WindowVBox):
@@ -152,10 +175,22 @@ class ViewQuestionnairePage(base_gui.WindowVBox):
 
         self.user = ''
 
+    def update_data(self):
         self.ques_naire_list = QuestionnaireList()
         self.ques_naire_list.set_choose_func(self.on_view_ques)
-        for i in range(5):
-            self.ques_naire_list.add_ques("name: " + str(i))
+        user_naires = gl_data_manage.get_data(
+            "create_questionnaire_tab", "naire_ind", "user_ind = " + str(self.user))
+
+        for naire_ind in user_naires:
+            naire_ind = list(naire_ind)
+            naire_ind = naire_ind[0]
+            d_pk = gl_data_manage.get_data(
+                "questionnaire_tab", "*", "ind = " + str(naire_ind))
+            d_pk = list(d_pk[0])
+            ind = d_pk[0]
+            title = d_pk[1]
+
+            self.ques_naire_list.add_ques(title)
         self.add_item(self.ques_naire_list)
 
         self.create_ques = gui.Button("创建问卷")
@@ -172,6 +207,7 @@ class ViewQuestionnairePage(base_gui.WindowVBox):
 
     def on_create_ques(self, w):
         cp = CreateQuestionnairePage(self)
+        cp.set_userid(self.user)
         self.open_weight(cp)
 
 
@@ -235,7 +271,23 @@ class LoginPage(gui.HBox):
     def on_login(self, weight):
         if (self.user_name.text != ""):
             # self.notification_message(self.user_name.text + "登录成功")
-            print(self.user_name.text)
+            user_id = int(self.user_name.text)
+            r_data = gl_data_manage.get_data(
+                "users_tab", "*", "user_ind = " + str(user_id))
+
+            if (len(r_data) == 0):
+                print(user_id, "注册")
+                gl_data_manage.insert_data(
+                    "users_tab", [user_id, "user_name_" + str(user_id)])
+
+            r_data = gl_data_manage.get_data(
+                "users_tab", "*", "user_ind = " + str(user_id))
+
+            t_userid, t_username = r_data[0]
+            print(t_userid, t_username, "登录成功")
+
+    def get_userid(self):
+        return int(self.user_name.text)
 
 
 class MyApp(App):
@@ -255,7 +307,10 @@ class MyApp(App):
         return self.container
 
     def view_ques_fn(self, weight):
-        self.container.open_weight(ViewQuestionnairePage(self.container))
+        vpq = ViewQuestionnairePage(self.container)
+        vpq.set_user(self.login_data.get_userid())
+        vpq.update_data()
+        self.container.open_weight(vpq)
 
     def write_ques_fn(self, weight):
         self.container.open_weight(FillOutQuestionnairePage(self.container))
