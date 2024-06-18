@@ -355,7 +355,7 @@ class MyApp(App):
         self.container = base_gui.BaseWindowVBox()
 
         self.login_data = LoginPage()
-        self.container.add_permanent_item(self.login_data)
+        self.container.add_item(self.login_data)
 
         self.choose_page = ChoosePage(height=400)
         self.choose_page.set_func(self.view_ques_fn, self.write_ques_fn)
