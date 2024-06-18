@@ -314,9 +314,11 @@ class LoginPage(gui.HBox):
         self.user_name = gui.TextInput()
         self.login = gui.Button("登录或注册", style='width: 160px')
         self.login.onclick.do(self.on_login)
+        self.now_status = gui.Label("未登录")
 
         self.append(self.user_name)
         self.append(self.login)
+        self.append(self.now_status)
 
     def on_login(self, weight):
         if (self.user_name.text != ""):
@@ -324,16 +326,21 @@ class LoginPage(gui.HBox):
             user_id = int(self.user_name.text)
             r_data = gl_data_manage.get_data(
                 "users_tab", "*", "user_ind = " + str(user_id))
+            login_status = ""
 
             if (len(r_data) == 0):
                 print(user_id, "注册")
                 gl_data_manage.insert_data(
                     "users_tab", [user_id, "user_name_" + str(user_id)])
+                login_status = "user_name_" + str(user_id) + "注册成功"
+            else:
+                login_status = "user_name_" + str(user_id) + "已登录"
 
             r_data = gl_data_manage.get_data(
                 "users_tab", "*", "user_ind = " + str(user_id))
 
             t_userid, t_username = r_data[0]
+            self.now_status.set_text(login_status)
             print(t_userid, t_username, "登录成功")
 
     def get_userid(self):
