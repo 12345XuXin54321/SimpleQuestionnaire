@@ -193,13 +193,15 @@ class ViewQuestionnairePage(base_gui.WindowVBox):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.user = ''
+        self.userid = -1
+        self.user_name = gui.Label("")
+        self.add_item(self.user_name)
 
     def update_data(self):
         self.ques_naire_list = QuestionnaireList()
         self.ques_naire_list.set_choose_func(self.on_view_ques)
         user_naires = gl_data_manage.get_data(
-            "create_questionnaire_tab", "naire_ind", "user_ind = " + str(self.user))
+            "create_questionnaire_tab", "naire_ind", "user_ind = " + str(self.userid))
 
         for naire_ind in user_naires:
             naire_ind = list(naire_ind)
@@ -217,20 +219,24 @@ class ViewQuestionnairePage(base_gui.WindowVBox):
         self.create_ques.onclick.do(self.on_create_ques)
         self.add_item(self.create_ques)
 
-    def set_user(self, usr):
-        self.user = usr
+    def set_user(self, usr_id):
+        self.userid = usr_id
+        user_name = gl_data_manage.get_data(
+            "users_tab", "username", "user_ind = " + str(usr_id))
+        user_name = list(user_name[0])[0]
+        self.user_name.set_text(user_name)
 
     def on_view_ques(self, w):
         print("c1 ", w.name.text)
         rp = ViewReplyPage(self)
-        rp.set_user(self.user)
+        rp.set_user(self.userid)
         rp.set_naire_ind(w.other_data)
         rp.update_data()
         self.open_weight(rp)
 
     def on_create_ques(self, w):
         cp = CreateQuestionnairePage(self)
-        cp.set_userid(self.user)
+        cp.set_userid(self.userid)
         self.open_weight(cp)
 
 
